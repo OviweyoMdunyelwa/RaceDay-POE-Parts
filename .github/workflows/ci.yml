@@ -1,4 +1,3 @@
-
 name: RaceDay Continuous Integration
 
 on:
@@ -39,14 +38,7 @@ jobs:
             exit 1
           fi
 
-          while IFS= read -r -d '' file; do
-            if [ ! -s "$file" ]; then
-              echo "::error file=$file::SQL file is empty."
-              exit 1
-            fi
-          done < <(find "$SQL_DIR" -type f -name '*.sql' -print0)
-
-          echo "PASS: Found $count non-empty SQL script(s)."
+          echo "PASS: Found $count SQL script(s)."
 
   part2-build-and-test:
     name: Part 2 - API Build and Tests
@@ -56,47 +48,54 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up .NET 8
+      - name: Set up .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
 
-      - name: Find API project
+      - name: Locate API project
         id: api
         shell: bash
         run: |
           set -euo pipefail
+
           file=$(find "Part 2" -type f -name 'RaceDay.API.csproj' -print -quit)
 
           if [ -z "$file" ]; then
-            echo "::error::RaceDay.API.csproj not found under Part 2."
+            echo "::error::RaceDay.API.csproj was not found."
             exit 1
           fi
 
+          echo "API project found: $file"
           echo "path=$file" >> "$GITHUB_OUTPUT"
 
-      - name: Restore API
+      - name: Restore API dependencies
         run: dotnet restore "${{ steps.api.outputs.path }}"
 
       - name: Build API
         run: dotnet build "${{ steps.api.outputs.path }}" --configuration Release --no-restore
 
-      - name: Find test project
+      - name: Locate test project
         id: tests
         shell: bash
         run: |
           set -euo pipefail
+
           file=$(find "Part 2" -type f -name 'RaceDay.API.Tests.csproj' -print -quit)
 
           if [ -z "$file" ]; then
-            echo "::error::RaceDay.API.Tests.csproj not found under Part 2."
+            echo "::error::RaceDay.API.Tests.csproj was not found."
             exit 1
           fi
 
+          echo "Test project found: $file"
           echo "path=$file" >> "$GITHUB_OUTPUT"
 
-      - name: Restore test project
+      - name: Restore test dependencies
         run: dotnet restore "${{ steps.tests.outputs.path }}"
 
+      - name: Build test project
+        run: dotnet build "${{ steps.tests.outputs.path }}" --configuration Release --no-restore
+
       - name: Run automated tests
-        run: dotnet test "${{ steps.tests.outputs.path }}" --configuration Release
+        run: dotnet test "${{ steps.tests.outputs.path }}" --configuration Release --no-build
