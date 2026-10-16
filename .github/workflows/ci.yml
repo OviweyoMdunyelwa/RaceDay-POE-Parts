@@ -1,34 +1,102 @@
-# inside jobs.part2-api-tests.steps
-- name: Locate projects (Part 2 nested)
-  id: part2
-  shell: bash
-  run: |
-    api=$(find "Part 2/Part 2" -type f -name 'RaceDay.API.csproj' -print -quit)
-    tests=$(find "Part 2/Part 2" -type f -name 'RaceDay.API.Tests.csproj' -print -quit)
 
-    if [ -z "$api" ]; then
-      echo "RaceDay.API.csproj was not found under Part 2/Part 2."
-      exit 1
-    fi
-    if [ -z "$tests" ]; then
-      echo "RaceDay.API.Tests.csproj was not found under Part 2/Part 2."
-      exit 1
-    fi
+name: RaceDay Continuous Integration
 
-    echo "api=$api" >> "$GITHUB_OUTPUT"
-    echo "tests=$tests" >> "$GITHUB_OUTPUT"
-    echo "Found API: $api"
-    echo "Found Tests: $tests"
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
 
-- name: Restore API
-  run: dotnet restore "${{ steps.part2.outputs.api }}"
+permissions:
+  contents: read
 
-- name: Build API
-  run: dotnet build "${{ steps.part2.outputs.api }}" --configuration Release --no-restore
+jobs:
+  part1-check:
+    name: Part 1 - Database Scripts
+    runs-on: ubuntu-latest
 
-- name: Restore tests
-  run: dotnet restore "${{ steps.part2.outputs.tests }}"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-- name: Run automated tests
-  run: dotnet test "${{ steps.part2.outputs.tests }}" --configuration Release --no-build
+      - name: Verify SQL scripts
+        shell: bash
+        run: |
+          set -euo pipefail
 
+          SQL_DIR="Part 1/SQL_Queries"
+
+          if [ ! -d "$SQL_DIR" ]; then
+            echo "::error::Part 1/SQL_Queries folder is missing."
+            exit 1
+          fi
+
+          count=$(find "$SQL_DIR" -type f -name '*.sql' | wc -l)
+
+          if [ "$count" -eq 0 ]; then
+            echo "::error::No SQL scripts were found."
+            exit 1
+          fi
+
+          while IFS= read -r -d '' file; do
+            if [ ! -s "$file" ]; then
+              echo "::error file=$file::SQL file is empty."
+              exit 1
+            fi
+          done < <(find "$SQL_DIR" -type f -name '*.sql' -print0)
+
+          echo "PASS: Found $count non-empty SQL script(s)."
+
+  part2-build-and-test:
+    name: Part 2 - API Build and Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Find API project
+        id: api
+        shell: bash
+        run: |
+          set -euo pipefail
+          file=$(find "Part 2" -type f -name 'RaceDay.API.csproj' -print -quit)
+
+          if [ -z "$file" ]; then
+            echo "::error::RaceDay.API.csproj not found under Part 2."
+            exit 1
+          fi
+
+          echo "path=$file" >> "$GITHUB_OUTPUT"
+
+      - name: Restore API
+        run: dotnet restore "${{ steps.api.outputs.path }}"
+
+      - name: Build API
+        run: dotnet build "${{ steps.api.outputs.path }}" --configuration Release --no-restore
+
+      - name: Find test project
+        id: tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          file=$(find "Part 2" -type f -name 'RaceDay.API.Tests.csproj' -print -quit)
+
+          if [ -z "$file" ]; then
+            echo "::error::RaceDay.API.Tests.csproj not found under Part 2."
+            exit 1
+          fi
+
+          echo "path=$file" >> "$GITHUB_OUTPUT"
+
+      - name: Restore test project
+        run: dotnet restore "${{ steps.tests.outputs.path }}"
+
+      - name: Run automated tests
+        run: dotnet test "${{ steps.tests.outputs.path }}" --configuration Release
