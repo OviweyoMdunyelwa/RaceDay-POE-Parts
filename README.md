@@ -121,5 +121,5 @@ This repository brings the RaceDay PoE components together in one organised loca
 
 ## Author
 
-**Student:** [Add your name]  
+**Student:** Oviweyo Mdunyelwa 
 **Project:** RaceDay PoE — Event Management System
