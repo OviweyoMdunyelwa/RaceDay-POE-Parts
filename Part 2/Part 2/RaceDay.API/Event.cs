@@ -1,4 +1,5 @@
 
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -26,14 +27,6 @@ namespace RaceDay.API.Models
         [Required]
         [MaxLength(150)]
         public string Location { get; set; } = string.Empty;
-
-        [Required]
-        [Range(0.1, 1000)]
-        public decimal Distance { get; set; }
-
-        [Required]
-        [MaxLength(50)]
-        public string EventType { get; set; } = string.Empty;
 
         [Required]
         public DateTime RegistrationDeadline { get; set; }
