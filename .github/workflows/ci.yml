@@ -1,1 +1,97 @@
 
+name: RaceDay CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  part1-sql-check:
+    name: Part 1 - SQL Script Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check Part 1 SQL scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          SQL_DIR="Part 1/SQL_Queries"
+
+          if [ ! -d "$SQL_DIR" ]; then
+            echo "Part 1 SQL_Queries folder was not found."
+            exit 1
+          fi
+
+          count=$(find "$SQL_DIR" -maxdepth 1 -type f -name '*.sql' | wc -l)
+
+          if [ "$count" -eq 0 ]; then
+            echo "No SQL scripts were found in Part 1."
+            exit 1
+          fi
+
+          echo "Found $count Part 1 SQL script(s)."
+
+          find "$SQL_DIR" -maxdepth 1 -type f -name '*.sql' -print
+
+  part2-api-tests:
+    name: Part 2 - Build API and Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Locate API project
+        id: api
+        shell: bash
+        run: |
+          file=$(find "Part 2" -type f -name 'RaceDay.API.csproj' -print -quit)
+
+          if [ -z "$file" ]; then
+            echo "RaceDay.API.csproj was not found under Part 2."
+            exit 1
+          fi
+
+          echo "path=$file" >> "$GITHUB_OUTPUT"
+          echo "Found API project: $file"
+
+      - name: Restore API
+        run: dotnet restore "${{ steps.api.outputs.path }}"
+
+      - name: Build API
+        run: dotnet build "${{ steps.api.outputs.path }}" --configuration Release --no-restore
+
+      - name: Locate test project
+        id: tests
+        shell: bash
+        run: |
+          file=$(find "Part 2" -type f -name 'RaceDay.API.Tests.csproj' -print -quit)
+
+          if [ -z "$file" ]; then
+            echo "RaceDay.API.Tests.csproj was not found under Part 2."
+            exit 1
+          fi
+
+          echo "path=$file" >> "$GITHUB_OUTPUT"
+          echo "Found test project: $file"
+
+      - name: Restore tests
+        run: dotnet restore "${{ steps.tests.outputs.path }}"
+
+      - name: Run automated tests
+        run: dotnet test "${{ steps.tests.outputs.path }}" --configuration Release
+
