@@ -1,0 +1,54 @@
+USE RaceDay_PoE_Final;
+GO
+
+INSERT INTO dbo.Enrolments
+(
+    EventID,
+    CategoryID,
+    ParticipantID,
+    EnrolmentDate,
+    RaceNumber,
+    PaymentStatus
+)
+VALUES
+(
+    3,
+    2,
+    3,
+    GETDATE(),
+    'JHB001',
+    'Paid'
+),
+(
+    3,
+    3,
+    4,
+    GETDATE(),
+    'JHB002',
+    'Paid'
+),
+(
+    4,
+    4,
+    3,
+    GETDATE(),
+    'DBN001',
+    'Paid'
+),
+(
+    5,
+    6,
+    4,
+    GETDATE(),
+    'CPT001',
+    'Pending'
+),
+(
+    5,
+    7,
+    3,
+    GETDATE(),
+    'CPT002',
+    'Paid'
+);
+GO

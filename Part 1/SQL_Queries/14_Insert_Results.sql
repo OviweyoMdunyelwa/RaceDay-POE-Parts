@@ -1,0 +1,42 @@
+USE RaceDay_PoE_Final;
+GO
+
+INSERT INTO dbo.Results
+(
+    EnrolmentID,
+    FinishTime,
+    ChipTime,
+    PositionOverall,
+    PositionCategory,
+    Pace,
+    Status
+)
+VALUES
+(
+    5,
+    '00:52:30',
+    '00:52:10',
+    14,
+    8,
+    5.22,
+    'Finished'
+),
+(
+    6,
+    '00:31:45',
+    '00:31:20',
+    22,
+    10,
+    6.28,
+    'Finished'
+),
+(
+    7,
+    '01:48:20',
+    '01:47:55',
+    9,
+    6,
+    2.16,
+    'Finished'
+);
+GO

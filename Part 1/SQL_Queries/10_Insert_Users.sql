@@ -1,0 +1,51 @@
+USE RaceDay_PoE_Final;
+GO
+
+INSERT INTO dbo.RaceDayUsers
+(
+    FirstName,
+    LastName,
+    Email,
+    PasswordHash,
+    Role,
+    PhoneNumber,
+    CreatedAt
+)
+VALUES
+(
+    'Thabo',
+    'Mokoena',
+    'thabo.mokoena@raceday.co.za',
+    'HASH_ORGANISER_001',
+    'Organiser',
+    '0825551001',
+    GETDATE()
+),
+(
+    'Lerato',
+    'Naidoo',
+    'lerato.naidoo@raceday.co.za',
+    'HASH_ORGANISER_002',
+    'Organiser',
+    '0835551002',
+    GETDATE()
+),
+(
+    'Sipho',
+    'Dlamini',
+    'sipho.dlamini@email.co.za',
+    'HASH_PARTICIPANT_001',
+    'Participant',
+    '0845551003',
+    GETDATE()
+),
+(
+    'Ayesha',
+    'Pillay',
+    'ayesha.pillay@email.co.za',
+    'HASH_PARTICIPANT_002',
+    'Participant',
+    '0855551004',
+    GETDATE()
+);
+GO
